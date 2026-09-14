@@ -1,6 +1,6 @@
 import os, subprocess, sys, re
 
-from typing import NoReturn, Union, List
+from typing import NoReturn, Union, List, Tuple
 from pathlib import Path, WindowsPath
 
 
@@ -19,12 +19,14 @@ def execve_with_program_name(
 
         if glob_search:
             for file_name in iterator:
-                if program_name in str(file_name).lower():
+                str_representation = str(file_name)
+                if program_name in str_representation.lower() and str_representation[-4:] == ".exe":
                     results.append(file_name)
         else:
             for file_name in path.glob("*"):
-                if re.search(f"\\\\{program_name}[^\\\\]*$", str(file_name), re.IGNORECASE):
-                    results.append(file_name)
+                str_representation = str(file_name)
+                if re.search(f"\\\\{program_name}[^\\\\]*$", str_representation, re.IGNORECASE) and str_representation[-4:] == ".exe":
+                        results.append(file_name)
 
     if len(results) == 1:
         print(f"Single match: {results[0]}")
@@ -35,14 +37,15 @@ def execve_with_program_name(
     else:
         return results
 
-def get_int(prompt: str = "") -> int:
+def get_int(prompt: str = "") -> Tuple[bool, int]:
     while True:
         response = input(prompt)
 
-        if response.isdigit():
+        try:
             return int(response)
+        except ValueError as e:
+            print("Failed to convert {response} into an integer with error {e}", file=sys.stderr)
 
-        print("That is not an integer pal", file=sys.stderr)
 
 change_directory = None
 
@@ -53,7 +56,7 @@ inbuilt_commands = {
 def ask():
     while True:
         program = input("Enter program: ")
-
+        
         if program[0] == "*":
             results = execve_with_program_name(program[1:], glob_search=True)
         else:            
@@ -64,7 +67,7 @@ def ask():
             continue
 
         prompt = ""
-        print("Choose one of these or -1 to cancel")
+        print("Choose one of these or - to cancel")
         for i, res in enumerate(results):
             print(f"{i}. {res}", flush=False)
 
@@ -84,5 +87,3 @@ def ask():
 
 if __name__ == "__main__":
     ask()
-
-            
