@@ -37,14 +37,15 @@ def execve_with_program_name(
     else:
         return results
 
-def get_int(prompt: str = "") -> Tuple[bool, int]:
+
+def get_t(prompt, f):
     while True:
         response = input(prompt)
 
         try:
-            return int(response)
+            return f(response)
         except ValueError as e:
-            print("Failed to convert {response} into an integer with error {e}", file=sys.stderr)
+            print(f"Failed to convert {response} into an integer with error {e}", file=sys.stderr)
 
 
 change_directory = None
@@ -55,12 +56,13 @@ inbuilt_commands = {
 
 def ask():
     while True:
-        program = input("Enter program: ")
+        args = input("Enter program: ").split(" ")
+        program = args[0]
         
         if program[0] == "*":
-            results = execve_with_program_name(program[1:], glob_search=True)
+            results = execve_with_program_name(program[1:], args, glob_search=True)
         else:            
-            results = execve_with_program_name(program)
+            results = execve_with_program_name(program, args)
 
         if len(results) == 0:
             print("No matches found")
@@ -71,11 +73,12 @@ def ask():
         for i, res in enumerate(results):
             print(f"{i}. {res}", flush=False)
 
+        response = get_t(prompt, lambda x: False if x == "-" else int(x))
 
-        if (response := get_int()) == -1:
+        if not response:
             print("Cancelling...")
             continue
-        elif response < -1:
+        elif response < 0:
             print("What are you on?", file=sys.stderr)
             continue
 
