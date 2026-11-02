@@ -23,7 +23,7 @@ def execve_with_program_name(
                 if program_name in str_representation.lower() and str_representation[-4:] == ".exe":
                     results.append(file_name)
         else:
-            for file_name in path.glob("*"):
+            for file_name in iterator:
                 str_representation = str(file_name)
                 if re.search(f"\\\\{program_name}[^\\\\]*$", str_representation, re.IGNORECASE) and str_representation[-4:] == ".exe":
                         results.append(file_name)
